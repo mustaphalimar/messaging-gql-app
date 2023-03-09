@@ -5,6 +5,7 @@ interface Props {}
 export default function Chat({}: Props) {
   return (
     <div>
+      <h1>Chat </h1>
       <Button onClick={() => signOut()}>Sign Out</Button>
     </div>
   );

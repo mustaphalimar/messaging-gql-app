@@ -1,8 +1,14 @@
+import { useMutation } from "@apollo/client";
 import { Button, Center, Image, Input, Stack, Text } from "@chakra-ui/react";
 
 import { Session } from "next-auth";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+
+import userOperations from "@/graphql/operations/user";
+
+import { CreateUsernameData, CreateUsernameVariables } from "@/utils/types";
+import { toast } from "react-hot-toast";
 
 interface Props {
   session: Session | null;
@@ -12,10 +18,39 @@ interface Props {
 export default function Auth({ session, reloadSession }: Props) {
   const [username, setUsername] = useState("");
 
+  const [createUsernameMutation, { loading, error }] = useMutation<
+    CreateUsernameData,
+    CreateUsernameVariables
+  >(userOperations.Mutations.createUsername);
+
+  console.log("Here is data : ", loading, error);
+
   const handleSubmit = async () => {
+    if (username.length < 3) return alert("Username too short");
     try {
       // createUsername mutation
-    } catch (error) {
+      const { data } = await createUsernameMutation({
+        variables: { username },
+      });
+
+      if (!data?.createUsername) {
+        throw new Error();
+      }
+
+      if (data.createUsername.error) {
+        const {
+          createUsername: { error },
+        } = data;
+        throw new Error(error);
+      }
+
+      setUsername("");
+      // Reloading the session to get latest user updates after successfully updated username
+      reloadSession();
+
+      toast.success("Username successfully created !🚀 ");
+    } catch (error: any) {
+      toast.error(error?.message);
       console.log("handleSubmit Error : ", error);
     }
   };

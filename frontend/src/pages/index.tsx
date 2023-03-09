@@ -12,7 +12,13 @@ interface Props {
 
 export default function Home({}: Props) {
   const { data: session } = useSession();
-  const reloadSession = () => {};
+
+  const reloadSession = () => {
+    const event = new Event("visibilitychange");
+    document.dispatchEvent(event);
+  };
+
+  console.log(session);
 
   return (
     <Box>
