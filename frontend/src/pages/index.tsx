@@ -18,12 +18,10 @@ export default function Home({}: Props) {
     document.dispatchEvent(event);
   };
 
-  console.log(session);
-
   return (
     <Box>
       {session?.user.username ? (
-        <Chat />
+        <Chat session={session} />
       ) : (
         <Auth session={session} reloadSession={reloadSession} />
       )}

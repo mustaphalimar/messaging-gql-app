@@ -1,8 +1,46 @@
+import { User } from "@prisma/client";
+import { GraphQLError } from "graphql";
 import { Context, CreateUsernameResponse } from "../../utils/types";
 
 const resolvers = {
   Query: {
-    searchUsers: () => {},
+    searchUsers: async (
+      _: any,
+      args: { username: string },
+      context: Context
+    ): Promise<Array<User>> => {
+      const { username: searchedUsername } = args;
+      const { prisma, session } = context;
+
+      if (!session?.user) {
+        throw new GraphQLError("You're not authenticated !", {
+          extensions: { code: 401 },
+        });
+      }
+
+      const {
+        user: { username: myUsername },
+      } = session;
+
+      try {
+        const users = await prisma.user.findMany({
+          where: {
+            username: {
+              contains: searchedUsername,
+              not: myUsername,
+              mode: "insensitive",
+            },
+          },
+        });
+
+        return users;
+      } catch (error: any) {
+        console.log("Search Users Error : ", error.message);
+        throw new GraphQLError(error.message);
+      }
+    },
+
+    // ----- End of Query Object
   },
   Mutation: {
     createUsername: async (
@@ -46,9 +84,9 @@ const resolvers = {
           error: error?.message,
         };
       }
-
-      return {};
     },
+
+    // ---- End of Mutation Object
   },
   //   Subscription: {},
 };

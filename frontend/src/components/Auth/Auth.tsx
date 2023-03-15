@@ -74,6 +74,7 @@ export default function Auth({ session, reloadSession }: Props) {
           <>
             <Text fontSize="3xl">MessangerQL</Text>
             <Button
+              isLoading={loading}
               onClick={() => signIn("google")}
               leftIcon={
                 <Image

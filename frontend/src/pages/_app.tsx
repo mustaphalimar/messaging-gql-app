@@ -3,7 +3,7 @@ import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";
 import { ApolloProvider } from "@apollo/client";
 
-import { theme } from "@/chakra/theme";
+import theme from "@/chakra/theme";
 import { client } from "@/graphql/apollo-client";
 import { Toaster } from "react-hot-toast";
 
