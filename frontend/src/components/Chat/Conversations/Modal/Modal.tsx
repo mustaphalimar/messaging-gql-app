@@ -32,6 +32,7 @@ import UserSearchList from "./UserSearchList";
 import Participants from "./Participants";
 import { toast } from "react-hot-toast";
 import { Session } from "next-auth";
+import { useRouter } from "next/router";
 
 const ConversationModal: React.FC<ModalProps> = ({
   isOpen,
@@ -40,6 +41,7 @@ const ConversationModal: React.FC<ModalProps> = ({
 }) => {
   const [searchUsername, setSearchUsername] = useState("");
   const [participants, setParticipants] = useState<SearchedUser[]>([]);
+  const router = useRouter();
 
   // using useLazyQuery instead of simple useQuery, because otherwise this will fire off as soon as the component renders not after searchUsername was provided
   const [searchUsers, { data, loading, error }] = useLazyQuery<
@@ -63,6 +65,25 @@ const ConversationModal: React.FC<ModalProps> = ({
       const { data, errors } = await createConversation({
         variables: { participantsIds },
       });
+
+      if (!data?.createConversation) {
+        throw new Error("Failed to create conversation");
+        console.log(errors);
+      }
+
+      const {
+        createConversation: { conversationId },
+      } = data;
+
+      router.push({ query: { conversationId } });
+
+      /**
+       * Clear the state and close the modal after successful creation
+       */
+      setParticipants([]);
+      setSearchUsername("");
+      onClose();
+
       // console.log("here is the data : ", data);
     } catch (error: any) {
       console.log("onCreateConversation error");
