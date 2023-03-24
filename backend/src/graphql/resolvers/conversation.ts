@@ -2,6 +2,7 @@ import { ConversationPopulated } from "../../utils/types";
 import { Prisma } from "@prisma/client";
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/types";
+import { withFilter } from "graphql-subscriptions";
 
 const resolvers = {
   Query: {
@@ -87,13 +88,41 @@ const resolvers = {
   },
   Subscription: {
     conversationCreated: {
-      subscribe: (_p: any, _args: any, context: Context) => {
-        const { pubsub } = context;
-        return pubsub.asyncIterator(["CONVERSATION_CREATED"]);
-      },
+      subscribe: withFilter(
+        (_p: any, _args: any, context: Context) => {
+          const { pubsub } = context;
+          return pubsub.asyncIterator(["CONVERSATION_CREATED"]);
+        },
+        (
+          payload: ConversationCreatedSubscriptionPayload,
+          _: any,
+          context: Context
+        ) => {
+          const { session } = context;
+          const {
+            conversationCreated: { participants },
+          } = payload;
+
+          if (!session?.user) {
+            throw new GraphQLError("You're not authenticated !", {
+              extensions: { code: 401 },
+            });
+          }
+
+          const isUserParticipant = !!participants.find(
+            (p) => p.userId === session.user.id
+          );
+
+          return isUserParticipant;
+        }
+      ),
     },
   },
 };
+
+export interface ConversationCreatedSubscriptionPayload {
+  conversationCreated: ConversationPopulated;
+}
 
 export const participantPopulated =
   Prisma.validator<Prisma.ConversationParticipantInclude>()({
