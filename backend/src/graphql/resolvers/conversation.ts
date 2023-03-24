@@ -34,6 +34,8 @@ const resolvers = {
         });
       }
     },
+
+    // End of Query Object
   },
   Mutation: {
     createConversation: async (
@@ -41,7 +43,7 @@ const resolvers = {
       args: { participantsIds: string[] },
       context: Context
     ): Promise<{ conversationId: string }> => {
-      const { prisma, session } = context;
+      const { prisma, session, pubsub } = context;
       const { participantsIds } = args;
 
       if (!session?.user) {
@@ -65,6 +67,11 @@ const resolvers = {
           include: conversationPopulated,
         });
 
+        // emit a CONVERSATION_CREATED event using pubsub
+        pubsub.publish("CONVERSATION_CREATED", {
+          conversationCreated: conversation,
+        });
+
         return {
           conversationId: conversation.id,
         };
@@ -74,6 +81,16 @@ const resolvers = {
           extensions: { code: 500 },
         });
       }
+    },
+
+    // End of Mutation Object
+  },
+  Subscription: {
+    conversationCreated: {
+      subscribe: (_p: any, _args: any, context: Context) => {
+        const { pubsub } = context;
+        pubsub.asyncIterator(["CONVERSATION_CREATED"]);
+      },
     },
   },
 };
