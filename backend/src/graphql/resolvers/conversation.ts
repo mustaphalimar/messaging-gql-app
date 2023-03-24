@@ -89,7 +89,7 @@ const resolvers = {
     conversationCreated: {
       subscribe: (_p: any, _args: any, context: Context) => {
         const { pubsub } = context;
-        pubsub.asyncIterator(["CONVERSATION_CREATED"]);
+        return pubsub.asyncIterator(["CONVERSATION_CREATED"]);
       },
     },
   },
