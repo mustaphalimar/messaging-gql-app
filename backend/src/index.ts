@@ -2,7 +2,7 @@ import { Session } from "./utils/types";
 import { PrismaClient } from "@prisma/client";
 import { getSession } from "next-auth/react";
 
-import { ApolloServer, ContextFunction } from "@apollo/server";
+import { ApolloServer } from "@apollo/server";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";

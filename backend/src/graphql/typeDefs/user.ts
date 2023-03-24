@@ -18,6 +18,15 @@ const typeDefs = gql`
     success: Boolean
     error: String
   }
+
+  type User {
+    id: String
+    name: String
+    username: String
+    email: String
+    image: String
+    emailVerified: Boolean
+  }
 `;
 
 export default typeDefs;

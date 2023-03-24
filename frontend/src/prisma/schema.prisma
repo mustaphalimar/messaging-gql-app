@@ -35,14 +35,16 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String                    @id @default(cuid())
     name          String?
-    username      String?
-    email         String?   @unique
+    username      String?                   @unique
+    email         String?                   @unique
     emailVerified DateTime?
     image         String?
     accounts      Account[]
     sessions      Session[]
+    conversations ConversationParticipant[]
+    messages      Message[]
 }
 
 model VerificationToken {
@@ -51,4 +53,39 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Conversation {
+    id              String                    @id @default(cuid())
+    participants    ConversationParticipant[]
+    messages        Message[]                 @relation(name: "conversationMessages")
+    latestMessage   Message?                  @relation(name: "latestConversationMessage", fields: [latestMessageId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+    latestMessageId String?                   @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ConversationParticipant {
+    id                   String       @id @default(cuid())
+    user                 User         @relation(fields: [userId], references: [id])
+    conversation         Conversation @relation(fields: [conversationId], references: [id])
+    userId               String
+    conversationId       String
+    hasSeenLatestMessage Boolean
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Message {
+    id             String        @id @default(cuid())
+    conversation   Conversation  @relation(name: "conversationMessages", fields: [conversationId], references: [id])
+    conversationId String
+    sender         User          @relation(fields: [senderId], references: [id])
+    senderId       String
+    isLatestIn     Conversation? @relation(name: "latestConversationMessage")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

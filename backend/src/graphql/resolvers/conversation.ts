@@ -1,8 +1,40 @@
+import { ConversationPopulated } from "../../utils/types";
 import { Prisma } from "@prisma/client";
 import { GraphQLError } from "graphql";
 import { Context } from "../../utils/types";
 
 const resolvers = {
+  Query: {
+    conversations: async (
+      _: any,
+      _a: any,
+      context: Context
+    ): Promise<ConversationPopulated[]> => {
+      const { session, prisma } = context;
+
+      if (!session?.user) {
+        throw new GraphQLError("You're not authenticated !", {
+          extensions: { code: 401 },
+        });
+      }
+
+      try {
+        const conversations = await prisma.conversation.findMany({
+          where: {
+            participants: { some: { userId: { equals: session.user.id } } },
+          },
+          include: conversationPopulated,
+        });
+
+        return conversations;
+      } catch (error: any) {
+        console.log("Error creating conversation : ", error.message);
+        throw new GraphQLError("Error querying conversations", {
+          extensions: { code: 500 },
+        });
+      }
+    },
+  },
   Mutation: {
     createConversation: async (
       _: any,
