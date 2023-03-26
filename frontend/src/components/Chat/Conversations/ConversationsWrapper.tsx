@@ -13,6 +13,7 @@ import { ConversationsData } from "@/utils/types";
 import { signOut } from "next-auth/react";
 import { ConversationPopulated } from "../../../../../backend/src/utils/types";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
 
 const ConversationsWrapper: React.FC<ConversationsWrapperProps> = ({
   session,
@@ -23,8 +24,20 @@ const ConversationsWrapper: React.FC<ConversationsWrapperProps> = ({
     error: conversationsError,
     subscribeToMore,
   } = useQuery<ConversationsData>(ConversationOperations.Queries.conversations);
+  const router = useRouter();
 
-  console.log("Query Data : ", conversationsData);
+  // console.log("Query Data : ", conversationsData);
+
+  const onViewConversation = async (conversationId: string) => {
+    /**
+     * 1. Push the conversationId to the router query params
+     */
+    router.push({ query: { conversationId } });
+
+    /**
+     * 2. Mark the conversation as read
+     */
+  };
 
   const subscribeToNewConversations = () => {
     subscribeToMore({
@@ -57,7 +70,16 @@ const ConversationsWrapper: React.FC<ConversationsWrapperProps> = ({
   }, []);
 
   return (
-    <Box width={{ base: "100%", md: "400px" }} bg="whiteAlpha.50" py={6}>
+    <Box
+      width={{ base: "100%", md: "400px" }}
+      bg="whiteAlpha.50"
+      py={6}
+      px={3}
+      // display={{
+      //   base: router.query.conversationId ? "flex" : "none",
+      //   md: "flex",
+      // }}
+    >
       {/* Skeleton Loader */}
       <Flex alignItems="center" justifyContent="center">
         <Text>{session.user.username}</Text>
@@ -66,6 +88,7 @@ const ConversationsWrapper: React.FC<ConversationsWrapperProps> = ({
       <ConversationList
         session={session}
         conversations={conversationsData?.conversations || []}
+        onViewConversation={onViewConversation}
       />
     </Box>
   );
